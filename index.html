@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Bypasses Pinterest Hotlink 403 Blocking -->
+  <meta name="referrer" content="no-referrer" />
   <title>Parul Sharma | Vellora Global Sourcing</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -85,7 +87,7 @@
 
     .front-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       position: relative;
       z-index: 2;
@@ -103,6 +105,7 @@
       border-radius: 50%;
       border: 1px solid var(--border-gold);
       object-fit: cover;
+      background-color: #0b1320;
     }
 
     .brand-title {
@@ -121,17 +124,6 @@
       letter-spacing: 0.26em;
       text-transform: uppercase;
       color: #94a3b8;
-    }
-
-    .est-badge {
-      font-family: var(--font-serif);
-      font-size: 0.72rem;
-      letter-spacing: 0.15em;
-      color: var(--gold-light);
-      border: 1px solid var(--border-gold);
-      padding: 0.2rem 0.6rem;
-      border-radius: 4px;
-      background: rgba(212, 175, 55, 0.05);
     }
 
     .front-body {
@@ -201,6 +193,7 @@
       border: 1.5px solid var(--border-gold);
       object-fit: cover;
       margin-bottom: 0.8rem;
+      background-color: #0b1320;
       box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
     }
 
@@ -306,7 +299,6 @@
       .brand-logo { width: 36px; height: 36px; }
       .brand-title { font-size: 1.15rem; }
       .brand-subtitle { font-size: 0.45rem; }
-      .est-badge { font-size: 0.55rem; padding: 0.15rem 0.4rem; }
       .person-name { font-size: 1.25rem; }
       .person-role { font-size: 0.52rem; }
       .cb-label { font-size: 0.42rem; }
@@ -330,13 +322,16 @@
       
       <div class="front-header">
         <div class="brand-group">
-          <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" alt="Vellora Logo" class="brand-logo" crossorigin="anonymous" />
+          <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" 
+               alt="Vellora Logo" 
+               class="brand-logo" 
+               referrerpolicy="no-referrer"
+               onerror="this.src='https://images.weserv.nl/?url=https%3A%2F%2Fi.pinimg.com%2F736x%2F25%2F00%2Fff%2F2500ff168bfd7314f2e962ea1ae28c34.jpg';" />
           <div>
             <div class="brand-title">VELLORA</div>
             <div class="brand-subtitle">GLOBAL SOURCING</div>
           </div>
         </div>
-        <div class="est-badge">EST. 2017</div>
       </div>
 
       <div class="front-body">
@@ -368,7 +363,11 @@
     <div class="card card-back" id="cardBack">
       <div class="card-top-line"></div>
 
-      <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" alt="Vellora Logo" class="back-logo" crossorigin="anonymous" />
+      <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" 
+           alt="Vellora Logo" 
+           class="back-logo" 
+           referrerpolicy="no-referrer"
+           onerror="this.src='https://images.weserv.nl/?url=https%3A%2F%2Fi.pinimg.com%2F736x%2F25%2F00%2Fff%2F2500ff168bfd7314f2e962ea1ae28c34.jpg';" />
       <div class="back-brand-title">VELLORA</div>
       <div class="back-brand-sub">GLOBAL SOURCING</div>
       <div class="verticals-tag">Garments &bull; Homes &bull; Accessories</div>
@@ -396,6 +395,7 @@
       return await html2canvas(sheet, {
         scale: 3,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#070d18'
       });
     }
@@ -450,14 +450,12 @@
             url: shareUrl
           });
         } else {
-          // Desktop Browser Fallback (WhatsApp Web fallback)
           const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`;
           window.open(fallbackUrl, '_blank');
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error(err);
-          // Fallback on cancel or permission rejection
           const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`;
           window.open(fallbackUrl, '_blank');
         }
