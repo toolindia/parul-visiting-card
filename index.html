@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Bypasses Pinterest Hotlink 403 Blocking -->
   <meta name="referrer" content="no-referrer" />
   <title>Parul Sharma | Vellora Global Sourcing</title>
 
@@ -11,7 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+  <!-- Libraries for image and PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     :root {
@@ -322,11 +323,8 @@
       
       <div class="front-header">
         <div class="brand-group">
-          <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" 
-               alt="Vellora Logo" 
-               class="brand-logo" 
-               referrerpolicy="no-referrer"
-               onerror="this.src='https://images.weserv.nl/?url=https%3A%2F%2Fi.pinimg.com%2F736x%2F25%2F00%2Fff%2F2500ff168bfd7314f2e962ea1ae28c34.jpg';" />
+          <!-- Fallback and referer managed by JS on load -->
+          <img alt="Vellora Logo" class="brand-logo cors-safe-logo" />
           <div>
             <div class="brand-title">VELLORA</div>
             <div class="brand-subtitle">GLOBAL SOURCING</div>
@@ -363,11 +361,7 @@
     <div class="card card-back" id="cardBack">
       <div class="card-top-line"></div>
 
-      <img src="https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg" 
-           alt="Vellora Logo" 
-           class="back-logo" 
-           referrerpolicy="no-referrer"
-           onerror="this.src='https://images.weserv.nl/?url=https%3A%2F%2Fi.pinimg.com%2F736x%2F25%2F00%2Fff%2F2500ff168bfd7314f2e962ea1ae28c34.jpg';" />
+      <img alt="Vellora Logo" class="back-logo cors-safe-logo" />
       <div class="back-brand-title">VELLORA</div>
       <div class="back-brand-sub">GLOBAL SOURCING</div>
       <div class="verticals-tag">Garments &bull; Homes &bull; Accessories</div>
@@ -378,9 +372,9 @@
   </div>
 
   <div class="action-bar">
-    <button class="btn btn-download" onclick="downloadBothSides()">
+    <button class="btn btn-download" onclick="exportCardOptions()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      Download Front &amp; Back (PNG)
+      Export Card...
     </button>
 
     <button class="btn btn-share" onclick="shareCard()">
@@ -390,33 +384,118 @@
   </div>
 
   <script>
+    const LOGO_URL = 'https://i.pinimg.com/736x/25/00/ff/2500ff168bfd7314f2e962ea1ae28c34.jpg';
+    let corsSafeLogoBase64 = null;
+
+    // Load logo as Base64 on start to bypass CORS during export
+    window.addEventListener('load', () => {
+      convertImgToBase64(LOGO_URL, (base64) => {
+        corsSafeLogoBase64 = base64;
+        document.querySelectorAll('.cors-safe-logo').forEach(img => {
+          img.src = base64;
+        });
+      });
+    });
+
+    function convertImgToBase64(url, callback) {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.referrerPolicy = 'no-referrer';
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.height = this.naturalHeight;
+        canvas.width = this.naturalWidth;
+        ctx.drawImage(this, 0, 0);
+        callback(canvas.toDataURL('image/png'));
+      };
+      // Use proxy fallback if direct load fails
+      img.onerror = function() {
+        img.src = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
+      }
+      img.src = url;
+    }
+
     async function generateCanvasSheet() {
       const sheet = document.getElementById('cardDeckSheet');
+      if (!corsSafeLogoBase64) {
+        alert("Logo is still loading. Please wait a moment.");
+        return null;
+      }
       return await html2canvas(sheet, {
-        scale: 3,
+        scale: 3, // Print resolution
         useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#070d18'
+        backgroundColor: '#070d18',
+        logging: false
       });
     }
 
-    async function downloadBothSides() {
+    function exportCardOptions() {
+      const choice = confirm("Choose export format:\n\nOK for PDF (Print Ready)\nCancel for Image (PNG)");
+      if (choice) {
+        downloadPDF();
+      } else {
+        downloadPNG();
+      }
+    }
+
+    async function downloadPNG() {
       const btn = document.querySelector('.btn-download');
       const originalHTML = btn.innerHTML;
-      btn.innerText = 'Generating High-Res Card...';
+      btn.innerText = 'Generating Image...';
       btn.style.opacity = '0.7';
 
       try {
         const canvas = await generateCanvasSheet();
+        if (!canvas) return;
         const link = document.createElement('a');
-        link.download = 'Vellora_Visiting_Card_Parul_Sharma.png';
+        link.download = 'Vellora_Card_Parul_Sharma.png';
         link.href = canvas.toDataURL('image/png');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       } catch (err) {
         console.error(err);
-        alert('Could not export image. Check network connection.');
+        alert('Could not export image.');
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.style.opacity = '1';
+      }
+    }
+
+    async function downloadPDF() {
+      const btn = document.querySelector('.btn-download');
+      const originalHTML = btn.innerHTML;
+      btn.innerText = 'Generating PDF...';
+      btn.style.opacity = '0.7';
+
+      try {
+        const canvas = await generateCanvasSheet();
+        if (!canvas) return;
+        const imgData = canvas.toDataURL('image/png');
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        // Ratio to fit A4 width with margins
+        const ratio = (pageWidth - 20) / imgWidth; 
+        const finalWidth = imgWidth * ratio;
+        const finalHeight = imgHeight * ratio;
+
+        pdf.addImage(imgData, 'PNG', 10, 10, finalWidth, finalHeight);
+        pdf.save('Vellora_Card_Parul_Sharma.pdf');
+      } catch (err) {
+        console.error(err);
+        alert('Could not export PDF.');
       } finally {
         btn.innerHTML = originalHTML;
         btn.style.opacity = '1';
@@ -426,16 +505,16 @@
     async function shareCard() {
       const btn = document.querySelector('.btn-share');
       const originalHTML = btn.innerHTML;
-      btn.innerText = 'Preparing Share...';
+      btn.innerText = 'Preparing...';
       btn.style.opacity = '0.7';
 
-      const shareText = "Parul Sharma | Corporate Merchandising & Sourcing\nVellora Global Sourcing\nPhone: +91 84479 41979\nEmail: parul@vellorags.com\nWebsite: https://vellorags.com";
-      const shareUrl = window.location.href;
-
+      const shareText = "Parul Sharma | Corporate Merchandising & Sourcing\nVellora Global Sourcing\nPhone: +91 84479 41979\nEmail: parul@vellorags.com";
+      
       try {
         const canvas = await generateCanvasSheet();
+        if (!canvas) return;
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        const file = new File([blob], 'Vellora_Card_Parul_Sharma.png', { type: 'image/png' });
+        const file = new File([blob], 'Vellora_Card.png', { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
@@ -443,21 +522,22 @@
             title: 'Parul Sharma - Vellora Global Sourcing',
             text: shareText
           });
-        } else if (navigator.share) {
-          await navigator.share({
-            title: 'Parul Sharma - Vellora Global Sourcing',
-            text: shareText,
-            url: shareUrl
-          });
         } else {
-          const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`;
-          window.open(fallbackUrl, '_blank');
+          // Fallback to text share if files not supported (Desktop/Safari)
+          if (navigator.share) {
+             await navigator.share({
+               title: 'Parul Sharma - Vellora Global Sourcing',
+               text: shareText,
+               url: window.location.href
+             });
+          } else {
+            alert("Web Share not supported on this browser. Text copied to clipboard.");
+            navigator.clipboard.writeText(shareText);
+          }
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error(err);
-          const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`;
-          window.open(fallbackUrl, '_blank');
         }
       } finally {
         btn.innerHTML = originalHTML;
